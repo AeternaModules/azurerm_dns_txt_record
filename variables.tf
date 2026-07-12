@@ -18,18 +18,10 @@ EOT
     ttl                 = number
     zone_name           = string
     tags                = optional(map(string))
-    record = object({
+    record = list(object({
       value = string
-    })
+    }))
   }))
-  validation {
-    condition = alltrue([
-      for k, v in var.dns_txt_records : (
-        length(v.record.value) >= 1 && length(v.record.value) <= 4096
-      )
-    ])
-    error_message = "must be between 1 and 4096 characters"
-  }
   # --- Unconfirmed validation candidates, derived from azurerm_dns_txt_record's provider source ---
   # Not auto-enabled: either a bespoke provider validator we can't safely translate,
   # or a path that crosses a list-typed block (needs its own for_each wrapping).
@@ -48,6 +40,9 @@ EOT
   #   source:    [from resourcegroups.ValidateName: invalid when len(value) == 0]
   # path: resource_group_name
   #   source:    [from resourcegroups.ValidateName] !matched
+  # path: record.value
+  #   condition: length(value) >= 1 && length(value) <= 4096
+  #   message:   must be between 1 and 4096 characters
   # path: tags
   #   condition: length(value) <= 50
   #   message:   [from tags.Validate: invalid when len(value) > 50]
